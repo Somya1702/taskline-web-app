@@ -144,36 +144,51 @@ app.delete('/api/tasks/:id', (req, res) => {
     });
 });
 
-// API Routes for task statistics
-app.get('/api/stats', (req, res) => {
-    const queries = {
-        totalTasks: "SELECT COUNT(*) as count FROM tasks",
-        openTasks: "SELECT COUNT(*) as count FROM tasks WHERE status = 'Open'",
-        inProgressTasks: "SELECT COUNT(*) as count FROM tasks WHERE status = 'In-Progress'",
-        completedTasks: "SELECT COUNT(*) as count FROM tasks WHERE status = 'Close'",
-        overdueTasks: "SELECT COUNT(*) as count FROM tasks WHERE due_date < date('now') AND status != 'Close'"
-    };
-
-    const stats = {};
-    let completedQueries = 0;
-    const totalQueries = Object.keys(queries).length;
-
-    Object.entries(queries).forEach(([key, sql]) => {
-        db.get(sql, [], (err, row) => {
+const dbGet = (sql, params = []) => {
+    return new Promise((resolve, reject) => {
+        db.get(sql, params, (err, row) => {
             if (err) {
-                if (!res.headersSent) {
-                    res.status(500).json({ error: err.message });
-                }
-                return;
-            }
-            stats[key] = row.count;
-            completedQueries++;
-
-            if (completedQueries === totalQueries) {
-                res.json(stats);
+                reject(err);
+            } else {
+                resolve(row);
             }
         });
     });
+};
+
+// API Routes for task statistics
+app.get('/api/stats', async (req, res) => {
+    try {
+        const totalTasksPromise = dbGet("SELECT COUNT(*) as count FROM tasks");
+        const openTasksPromise = dbGet("SELECT COUNT(*) as count FROM tasks WHERE status = 'Open'");
+        const inProgressTasksPromise = dbGet("SELECT COUNT(*) as count FROM tasks WHERE status = 'In-Progress'");
+        const completedTasksPromise = dbGet("SELECT COUNT(*) as count FROM tasks WHERE status = 'Close'");
+        const overdueTasksPromise = dbGet("SELECT COUNT(*) as count FROM tasks WHERE due_date < date('now') AND status != 'Close'");
+
+        const [
+            totalTasks,
+            openTasks,
+            inProgressTasks,
+            completedTasks,
+            overdueTasks
+        ] = await Promise.all([
+            totalTasksPromise,
+            openTasksPromise,
+            inProgressTasksPromise,
+            completedTasksPromise,
+            overdueTasksPromise
+        ]);
+
+        res.json({
+            totalTasks: totalTasks.count,
+            openTasks: openTasks.count,
+            inProgressTasks: inProgressTasks.count,
+            completedTasks: completedTasks.count,
+            overdueTasks: overdueTasks.count
+        });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to retrieve task statistics: ' + err.message });
+    }
 });
 
 // Start server
