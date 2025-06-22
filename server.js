@@ -146,34 +146,32 @@ app.delete('/api/tasks/:id', (req, res) => {
 
 // API Routes for task statistics
 app.get('/api/stats', (req, res) => {
+    const queries = {
+        totalTasks: "SELECT COUNT(*) as count FROM tasks",
+        openTasks: "SELECT COUNT(*) as count FROM tasks WHERE status = 'Open'",
+        inProgressTasks: "SELECT COUNT(*) as count FROM tasks WHERE status = 'In-Progress'",
+        completedTasks: "SELECT COUNT(*) as count FROM tasks WHERE status = 'Close'",
+        overdueTasks: "SELECT COUNT(*) as count FROM tasks WHERE due_date < date('now') AND status != 'Close'"
+    };
+
     const stats = {};
-    const today = new Date().toISOString().slice(0, 10);
+    let completedQueries = 0;
+    const totalQueries = Object.keys(queries).length;
 
-    db.serialize(() => {
-        db.get("SELECT COUNT(*) as count FROM tasks WHERE due_date = date('now')", [], (err, row) => {
-            if (err) return res.status(500).json({ error: err.message });
-            stats.dueToday = row.count;
+    Object.entries(queries).forEach(([key, sql]) => {
+        db.get(sql, [], (err, row) => {
+            if (err) {
+                if (!res.headersSent) {
+                    res.status(500).json({ error: err.message });
+                }
+                return;
+            }
+            stats[key] = row.count;
+            completedQueries++;
 
-            db.get("SELECT COUNT(*) as count FROM tasks WHERE due_date BETWEEN date('now') AND date('now', '+7 days')", [], (err, row) => {
-                if (err) return res.status(500).json({ error: err.message });
-                stats.dueThisWeek = row.count;
-
-                db.get("SELECT COUNT(*) as count FROM tasks WHERE due_date BETWEEN date('now', '+8 days') AND date('now', '+14 days')", [], (err, row) => {
-                    if (err) return res.status(500).json({ error: err.message });
-                    stats.dueNextWeek = row.count;
-
-                    db.get("SELECT COUNT(*) as count FROM tasks WHERE due_date BETWEEN date('now') AND date('now', '+15 days')", [], (err, row) => {
-                        if (err) return res.status(500).json({ error: err.message });
-                        stats.next15Days = row.count;
-
-                        db.get("SELECT COUNT(*) as count FROM tasks WHERE due_date < date('now') AND status != 'Close'", [], (err, row) => {
-                            if (err) return res.status(500).json({ error: err.message });
-                            stats.overdue = row.count;
-                            res.json(stats); // Send response in the final callback
-                        });
-                    });
-                });
-            });
+            if (completedQueries === totalQueries) {
+                res.json(stats);
+            }
         });
     });
 });
