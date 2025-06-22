@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Tracker</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            display: flex;
+            justify-content: space-around;
+            padding: 20px;
+        }
+
+        .column {
+            background: #e2e2e2;
+            padding: 10px;
+            border-radius: 5px;
+            width: 30%;
+        }
+
+        .column h2 {
+            text-align: center;
+        }
+
+        .tasks {
+            min-height: 200px;
+            padding: 10px;
+        }
+
+        .task {
+            background: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            cursor: move;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="column">
+            <h2>To Do</h2>
+            <div class="tasks" id="todo-tasks">
+                <div class="task" draggable="true">Task 1</div>
+                <div class="task" draggable="true">Task 2</div>
+            </div>
+        </div>
+        <div class="column">
+            <h2>In Progress</h2>
+            <div class="tasks" id="inprogress-tasks"></div>
+        </div>
+        <div class="column">
+            <h2>Done</h2>
+            <div class="tasks" id="done-tasks"></div>
+        </div>
+    </div>
+    <script>
+        const tasks = document.querySelectorAll('.task');
+        const taskContainers = document.querySelectorAll('.tasks');
+
+        tasks.forEach(task => {
+            task.addEventListener('dragstart', () => {
+                task.classList.add('dragging');
+            });
+
+            task.addEventListener('dragend', () => {
+                task.classList.remove('dragging');
+            });
+        });
+
+        taskContainers.forEach(container => {
+            container.addEventListener('dragover', e => {
+                e.preventDefault();
+                const afterElement = getDragAfterElement(container, e.clientY);
+                const draggable = document.querySelector('.dragging');
+                if (afterElement == null) {
+                    container.appendChild(draggable);
+                } else {
+                    container.insertBefore(draggable, afterElement);
+                }
+            });
+        });
+
+        function getDragAfterElement(container, y) {
+            const draggableElements = [...container.querySelectorAll('.task:not(.dragging)')];
+
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset: offset, element: child };
+                } else {
+                    return closest;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+    </script>
+</body>
+</html> 
