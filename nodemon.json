@@ -1,0 +1,4 @@
+{
+  "watch": ["*.js", "index.html", "style.css"],
+  "ignore": ["tasks.db", "tasks.db-journal", "package-lock.json", ".replit", "replit.nix"]
+} 

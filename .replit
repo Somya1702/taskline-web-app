@@ -1,6 +1,14 @@
 language = "nodejs"
 onBoot = ["npm", "install"]
-run = ["npm", "start"]
+run = "npm start"
+
+[ports]
+localPort = 3000
+externalPort = 80
+
+[http]
+port = 3000
+secure = false
 
 [ports]
 localPort = 3000
