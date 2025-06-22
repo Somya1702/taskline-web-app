@@ -1,5 +1,5 @@
+entrypoint = "server.js"
 run = "npm start"
-language = "nodejs"
 
 [http]
 port = 3000
