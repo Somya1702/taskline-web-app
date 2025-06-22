@@ -24,8 +24,8 @@
             <input type="text" placeholder="Search tasks, clients, matters...">
         </div>
         <div class="user-actions">
-            <button class="new-task-btn"><i class="fas fa-plus"></i> New Task</button>
-            <button class="master-data-btn">Master Data</button>
+            <button class="new-task-btn header-btn"><i class="fas fa-plus"></i> New Task</button>
+            <button class="master-data-btn header-btn">Master Data</button>
             <div class="notifications">
                 <i class="fas fa-bell"></i>
                 <span class="badge">3</span>
@@ -39,41 +39,36 @@
         <section class="summary-cards">
             <div class="card">
                 <div class="card-content">
-                    <p>Due Today</p>
-                    <span class="count">0</span>
-                    <p class="detail"><span class="overdue">2 overdue</span> tasks</p>
+                    <p>Total Tasks</p>
+                    <span id="stats-total" class="count">0</span>
                 </div>
-                <div class="card-icon orange"><i class="far fa-clock"></i></div>
+                <div class="card-icon blue"><i class="fas fa-tasks"></i></div>
             </div>
             <div class="card">
                 <div class="card-content">
-                    <p>Due This Week</p>
-                    <span class="count">0</span>
-                    <p class="detail"><i class="fas fa-arrow-right"></i> This week deadline</p>
+                    <p>Open Tasks</p>
+                    <span id="stats-open" class="count">0</span>
                 </div>
-                <div class="card-icon blue"><i class="far fa-calendar-alt"></i></div>
+                <div class="card-icon green"><i class="fas fa-door-open"></i></div>
             </div>
             <div class="card">
                 <div class="card-content">
-                    <p>Due Next Week</p>
-                    <span class="count">0</span>
-                    <p class="detail"><i class="fas fa-arrow-right"></i> Next week schedule</p>
+                    <p>In Progress</p>
+                    <span id="stats-in-progress" class="count">0</span>
                 </div>
-                <div class="card-icon purple"><i class="far fa-calendar-alt"></i></div>
+                <div class="card-icon purple"><i class="fas fa-spinner"></i></div>
             </div>
             <div class="card">
                 <div class="card-content">
-                    <p>Next 15 Days</p>
-                    <span class="count">0</span>
-                    <p class="detail"><i class="fas fa-arrow-right"></i> Next 15 days upcoming</p>
+                    <p>Completed</p>
+                    <span id="stats-completed" class="count">0</span>
                 </div>
-                <div class="card-icon green"><i class="far fa-calendar-check"></i></div>
+                <div class="card-icon grey"><i class="fas fa-check-circle"></i></div>
             </div>
             <div class="card">
                 <div class="card-content">
                     <p>Overdue</p>
-                    <span class="count">2</span>
-                    <p class="detail"><span class="urgent">Urgent</span> attention</p>
+                    <span id="stats-overdue" class="count">0</span>
                 </div>
                 <div class="card-icon red"><i class="fas fa-exclamation-triangle"></i></div>
             </div>
@@ -87,44 +82,32 @@
                     <button>Import</button>
                     <button>Export</button>
                     <button>Print</button>
+                    <button class="new-task-btn"><i class="fas fa-plus"></i> New Task</button>
                 </div>
             </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th><input type="checkbox"></th>
-                        <th>S.NO <i class="fas fa-search"></i></th>
-                        <th>NAME <i class="fas fa-search"></i></th>
-                        <th>RESOURCE <i class="fas fa-search"></i></th>
-                        <th>ENTITY GROUP/POC <i class="fas fa-search"></i></th>
-                        <th>ENTITY <i class="fas fa-search"></i></th>
-                        <th>STATE <i class="fas fa-search"></i></th>
-                        <th>TASK <i class="fas fa-search"></i></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><input type="checkbox"></td>
-                        <td>001</td>
-                        <td>John Smith</td>
-                        <td>Amit Sharma</td>
-                        <td>Corporate</td>
-                        <td>ABC Ltd</td>
-                        <td>Maharashtra</td>
-                        <td>GST compliance review and submission</td>
-                    </tr>
-                    <tr>
-                        <td><input type="checkbox"></td>
-                        <td>002</td>
-                        <td>Priya Patel</td>
-                        <td>Neha Singh</td>
-                        <td>Individual</td>
-                        <td>XYZ Pvt. Ltd</td>
-                        <td>Gujarat</td>
-                        <td>Income tax assessment and TD...</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>TASK <i class="fas fa-search"></i></th>
+                            <th>DUE DATE <input type="text" placeholder="dd-mm-y"></th>
+                            <th>STAGE <i class="fas fa-search"></i></th>
+                            <th>STATUS <select><option>All</option></select></th>
+                            <th>LITIGATION <i class="fas fa-search"></i></th>
+                            <th>TRIBUNAL/COURT <i class="fas fa-search"></i></th>
+                            <th>BILLING <select><option>All</option></select></th>
+                            <th>REMINDER <select><option>All</option></select></th>
+                            <th>OTHERS <i class="fas fa-search"></i></th>
+                            <th>FEES <i class="fas fa-search"></i></th>
+                            <th>MISC <i class="fas fa-search"></i></th>
+                            <th>ACTIONS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Rows will be dynamically inserted here by script.js -->
+                    </tbody>
+                </table>
+            </div>
         </section>
     </main>
 

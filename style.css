@@ -3,6 +3,7 @@ body {
     margin: 0;
     background-color: #f7f8fa;
     color: #333;
+    font-size: 14px;
 }
 
 header {
@@ -62,14 +63,14 @@ nav a.active {
     gap: 15px;
 }
 
-.new-task-btn, .master-data-btn {
+.header-btn {
     padding: 8px 15px;
     border-radius: 5px;
     border: 1px solid #ccc;
     cursor: pointer;
 }
 
-.new-task-btn {
+.user-actions .new-task-btn {
     background-color: #007bff;
     color: #fff;
     border-color: #007bff;
@@ -108,6 +109,14 @@ nav a.active {
 
 main {
     padding: 20px;
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+main h2 {
+    font-size: 28px;
+    margin-bottom: 20px;
+    color: #333;
 }
 
 .container {
@@ -141,45 +150,69 @@ main {
 }
 
 .summary-cards {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 20px;
-    margin-bottom: 20px;
+    margin-bottom: 25px;
+    align-items: flex-start;
+    transition: transform 0.2s, box-shadow 0.2s;
+    min-height: 120px;
 }
 
 .card {
     background-color: #fff;
-    border-radius: 5px;
-    border: 1px solid #ddd;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
     padding: 20px;
-    flex-grow: 1;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
 }
 
 .card .count {
-    font-size: 36px;
+    font-size: 32px;
     font-weight: bold;
+    line-height: 1;
+}
+
+.card .card-content p {
+    margin: 0 0 5px 0;
+    color: #666;
+    font-size: 14px;
 }
 
 .card .detail {
     font-size: 12px;
     color: #888;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 10px;
 }
-
-.card .detail .overdue {
-    color: red;
+.overdue-detail, .urgent-detail {
+    color: #e74c3c;
+    font-weight: bold;
 }
-
-.card .detail .urgent {
-    color: red;
+.urgent-detail .fa-exclamation-triangle {
+    margin-right: 3px;
 }
 
 .card-icon {
-    font-size: 24px;
-    padding: 15px;
-    border-radius: 50%;
+    font-size: 18px;
+    padding: 10px;
+    border-radius: 8px;
 }
+#stats-due-today.count { color: #f39c12; }
+#stats-due-this-week.count { color: #3498db; }
+#stats-due-next-week.count { color: #8e44ad; }
+#stats-next-15-days.count { color: #2ecc71; }
+#stats-overdue.count { color: #e74c3c; }
 
 .card-icon.orange { color: #f39c12; background-color: #fef5e7; }
 .card-icon.blue { color: #3498db; background-color: #eaf4fb; }
@@ -190,8 +223,9 @@ main {
 .task-management {
     background-color: #fff;
     border: 1px solid #ddd;
-    border-radius: 5px;
+    border-radius: 8px;
     padding: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
 }
 
 .task-header {
@@ -215,20 +249,54 @@ main {
     cursor: pointer;
 }
 
+.task-actions .new-task-btn {
+    background-color: #007bff;
+    color: #fff;
+}
+
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+}
+
+/* Custom Scrollbar */
+.table-container::-webkit-scrollbar {
+    height: 10px;
+}
+.table-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+.table-container::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 10px;
+}
+.table-container::-webkit-scrollbar-thumb:hover {
+    background: #aaa;
+}
+
 table {
     width: 100%;
     border-collapse: collapse;
+    white-space: nowrap;
 }
 
 th, td {
     text-align: left;
-    padding: 15px;
+    padding: 12px 15px;
     border-bottom: 1px solid #eee;
+    vertical-align: top;
 }
 
 th {
-    font-size: 14px;
+    background-color: #f8f9fa;
+    font-size: 12px;
     color: #555;
+    position: sticky;
+    top: 0;
+    z-index: 1;
 }
 
 th .fa-search {
@@ -236,9 +304,86 @@ th .fa-search {
     color: #aaa;
 }
 
-tbody tr:hover {
-    background-color: #f9f9f9;
+th input, th select {
+    margin-left: 5px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    padding: 2px 4px;
+    font-size: 11px;
 }
+
+tbody tr {
+    transition: background-color 0.2s;
+}
+
+tbody tr:nth-child(even) {
+    background-color: #fcfcfc;
+}
+
+tbody tr:hover {
+    background-color: #eef7ff;
+}
+
+td {
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.due-date {
+    color: #d9534f;
+    font-weight: bold;
+}
+
+.due-date.overdue {
+    color: #e74c3c;
+    font-weight: bold;
+}
+
+.status-badge, .stage-badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-weight: bold;
+    color: #fff;
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.stage-badge {
+    background-color: #7f8c8d;
+}
+tr[data-stage="In Progress"] .stage-badge {
+    background-color: #f39c12;
+}
+tr[data-stage="Review"] .stage-badge {
+    background-color: #8e44ad;
+}
+tr[data-stage="Completed"] .stage-badge {
+    background-color: #27ae60;
+}
+
+.status-badge.status-open {
+    background-color: #2ecc71;
+}
+
+.status-badge.status-close {
+    background-color: #95a5a6;
+}
+
+.actions {
+    white-space: nowrap;
+}
+
+.action-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    margin: 0 2px;
+    font-size: 14px;
+}
+.action-btn.edit-btn { color: #007bff; }
+.action-btn.delete-btn { color: #d9534f; }
+.action-btn.print-btn { color: #5bc0de; }
 
 /* Modal Styles */
 .modal {
@@ -258,7 +403,7 @@ tbody tr:hover {
     background-color: #fff;
     border-radius: 8px;
     width: 90%;
-    max-width: 600px;
+    max-width: 800px;
     max-height: 90vh;
     overflow-y: auto;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
@@ -270,11 +415,14 @@ tbody tr:hover {
     align-items: center;
     padding: 20px;
     border-bottom: 1px solid #eee;
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 1;
 }
 
 .modal-header h3 {
     margin: 0;
-    color: #333;
 }
 
 .close-btn {
@@ -282,11 +430,6 @@ tbody tr:hover {
     border: none;
     font-size: 24px;
     cursor: pointer;
-    color: #999;
-}
-
-.close-btn:hover {
-    color: #333;
 }
 
 .modal-body {
@@ -294,15 +437,21 @@ tbody tr:hover {
 }
 
 /* Form Styles */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+}
+
 .form-group {
-    margin-bottom: 20px;
+    margin-bottom: 0;
 }
 
 .form-group label {
     display: block;
     margin-bottom: 5px;
     font-weight: bold;
-    color: #333;
+    font-size: 12px;
 }
 
 .form-group input,
@@ -312,16 +461,25 @@ tbody tr:hover {
     padding: 10px;
     border: 1px solid #ddd;
     border-radius: 4px;
-    font-size: 14px;
     box-sizing: border-box;
 }
 
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-    outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+.form-group textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+fieldset {
+    border: 1px solid #ddd;
+    padding: 15px;
+    margin-top: 20px;
+    border-radius: 5px;
+}
+
+legend {
+    padding: 0 10px;
+    font-weight: bold;
+    color: #007bff;
 }
 
 .form-actions {
@@ -338,78 +496,11 @@ tbody tr:hover {
     border-radius: 4px;
     border: 1px solid #ddd;
     cursor: pointer;
-    font-size: 14px;
 }
 
 .form-actions button[type="submit"] {
     background-color: #007bff;
     color: #fff;
-    border-color: #007bff;
-}
-
-.form-actions button[type="submit"]:hover {
-    background-color: #0056b3;
-}
-
-.form-actions button[type="button"] {
-    background-color: #fff;
-    color: #333;
-}
-
-.form-actions button[type="button"]:hover {
-    background-color: #f8f9fa;
-}
-
-/* Task Table Enhancements */
-.task-cell {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.task-description {
-    flex: 1;
-    margin-right: 10px;
-}
-
-.task-actions-cell {
-    display: flex;
-    gap: 5px;
-}
-
-.edit-btn,
-.delete-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 5px;
-    border-radius: 3px;
-    font-size: 12px;
-}
-
-.edit-btn {
-    color: #007bff;
-}
-
-.edit-btn:hover {
-    background-color: #e3f2fd;
-}
-
-.delete-btn {
-    color: #dc3545;
-}
-
-.delete-btn:hover {
-    background-color: #f8d7da;
-}
-
-.overdue-row {
-    background-color: #fff5f5 !important;
-    border-left: 4px solid #dc3545;
-}
-
-.overdue-row:hover {
-    background-color: #ffe6e6 !important;
 }
 
 /* Notification Styles */

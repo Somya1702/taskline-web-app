@@ -26,14 +26,24 @@ const db = new sqlite3.Database('./tasks.db', (err) => {
 db.serialize(() => {
     db.run(`CREATE TABLE IF NOT EXISTS tasks (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        resource TEXT,
-        entity_group TEXT,
-        entity TEXT,
-        state TEXT,
         task_description TEXT,
-        due_date TEXT,
-        status TEXT DEFAULT 'pending',
+        due_date TEXT, -- Expected format: YYYY-MM-DD
+        stage TEXT,
+        status TEXT,
+        litigation_details TEXT,
+        tribunal_details TEXT,
+        billing_status TEXT,
+        billing_inv TEXT,
+        billing_real TEXT,
+        reminder_days INTEGER,
+        reminder_status TEXT,
+        reminder_remaining INTEGER,
+        others_poc TEXT,
+        others_pending TEXT,
+        fees_agreed TEXT,
+        fees_realised TEXT,
+        fees_counsel TEXT,
+        misc TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
@@ -64,11 +74,26 @@ app.get('/api/tasks', (req, res) => {
 });
 
 app.post('/api/tasks', (req, res) => {
-    const { name, resource, entity_group, entity, state, task_description, due_date } = req.body;
-    const sql = `INSERT INTO tasks (name, resource, entity_group, entity, state, task_description, due_date) 
-                  VALUES (?, ?, ?, ?, ?, ?, ?)`;
+    const { 
+        task_description, due_date, stage, status, litigation_details, 
+        tribunal_details, billing_status, billing_inv, billing_real, 
+        reminder_days, reminder_status, reminder_remaining, others_poc, 
+        others_pending, fees_agreed, fees_realised, fees_counsel, misc 
+    } = req.body;
     
-    db.run(sql, [name, resource, entity_group, entity, state, task_description, due_date], function(err) {
+    const sql = `INSERT INTO tasks (
+        task_description, due_date, stage, status, litigation_details, 
+        tribunal_details, billing_status, billing_inv, billing_real, 
+        reminder_days, reminder_status, reminder_remaining, others_poc, 
+        others_pending, fees_agreed, fees_realised, fees_counsel, misc
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    
+    db.run(sql, [
+        task_description, due_date, stage, status, litigation_details, 
+        tribunal_details, billing_status, billing_inv, billing_real, 
+        reminder_days, reminder_status, reminder_remaining, others_poc, 
+        others_pending, fees_agreed, fees_realised, fees_counsel, misc
+    ], function(err) {
         if (err) {
             res.status(500).json({ error: err.message });
             return;
@@ -78,12 +103,28 @@ app.post('/api/tasks', (req, res) => {
 });
 
 app.put('/api/tasks/:id', (req, res) => {
-    const { name, resource, entity_group, entity, state, task_description, due_date, status } = req.body;
-    const sql = `UPDATE tasks SET name=?, resource=?, entity_group=?, entity=?, state=?, 
-                  task_description=?, due_date=?, status=?, updated_at=CURRENT_TIMESTAMP 
-                  WHERE id=?`;
+    const { 
+        task_description, due_date, stage, status, litigation_details, 
+        tribunal_details, billing_status, billing_inv, billing_real, 
+        reminder_days, reminder_status, reminder_remaining, others_poc, 
+        others_pending, fees_agreed, fees_realised, fees_counsel, misc 
+    } = req.body;
+        
+    const sql = `UPDATE tasks SET 
+        task_description=?, due_date=?, stage=?, status=?, litigation_details=?, 
+        tribunal_details=?, billing_status=?, billing_inv=?, billing_real=?, 
+        reminder_days=?, reminder_status=?, reminder_remaining=?, others_poc=?, 
+        others_pending=?, fees_agreed=?, fees_realised=?, fees_counsel=?, misc=?, 
+        updated_at=CURRENT_TIMESTAMP 
+        WHERE id=?`;
     
-    db.run(sql, [name, resource, entity_group, entity, state, task_description, due_date, status, req.params.id], function(err) {
+    db.run(sql, [
+        task_description, due_date, stage, status, litigation_details, 
+        tribunal_details, billing_status, billing_inv, billing_real, 
+        reminder_days, reminder_status, reminder_remaining, others_poc, 
+        others_pending, fees_agreed, fees_realised, fees_counsel, misc, 
+        req.params.id
+    ], function(err) {
         if (err) {
             res.status(500).json({ error: err.message });
             return;
@@ -106,47 +147,30 @@ app.delete('/api/tasks/:id', (req, res) => {
 // API Routes for task statistics
 app.get('/api/stats', (req, res) => {
     const stats = {};
-    
-    // Due today
-    db.get("SELECT COUNT(*) as count FROM tasks WHERE date(due_date) = date('now')", (err, row) => {
-        if (err) {
-            res.status(500).json({ error: err.message });
-            return;
-        }
-        stats.dueToday = row.count;
-        
-        // Due this week
-        db.get("SELECT COUNT(*) as count FROM tasks WHERE date(due_date) BETWEEN date('now') AND date('now', '+7 days')", (err, row) => {
-            if (err) {
-                res.status(500).json({ error: err.message });
-                return;
-            }
-            stats.dueThisWeek = row.count;
-            
-            // Due next week
-            db.get("SELECT COUNT(*) as count FROM tasks WHERE date(due_date) BETWEEN date('now', '+7 days') AND date('now', '+14 days')", (err, row) => {
-                if (err) {
-                    res.status(500).json({ error: err.message });
-                    return;
-                }
-                stats.dueNextWeek = row.count;
-                
-                // Next 15 days
-                db.get("SELECT COUNT(*) as count FROM tasks WHERE date(due_date) BETWEEN date('now') AND date('now', '+15 days')", (err, row) => {
-                    if (err) {
-                        res.status(500).json({ error: err.message });
-                        return;
-                    }
-                    stats.next15Days = row.count;
-                    
-                    // Overdue
-                    db.get("SELECT COUNT(*) as count FROM tasks WHERE date(due_date) < date('now') AND status != 'completed'", (err, row) => {
-                        if (err) {
-                            res.status(500).json({ error: err.message });
-                            return;
-                        }
-                        stats.overdue = row.count;
-                        res.json(stats);
+    const today = new Date().toISOString().slice(0, 10);
+
+    db.serialize(() => {
+        db.get("SELECT COUNT(*) as count FROM tasks WHERE due_date = date('now')", [], (err, row) => {
+            if (err) return res.status(500).json({ error: err.message });
+            stats.dueToday = row.count;
+
+            db.get("SELECT COUNT(*) as count FROM tasks WHERE due_date BETWEEN date('now') AND date('now', '+7 days')", [], (err, row) => {
+                if (err) return res.status(500).json({ error: err.message });
+                stats.dueThisWeek = row.count;
+
+                db.get("SELECT COUNT(*) as count FROM tasks WHERE due_date BETWEEN date('now', '+8 days') AND date('now', '+14 days')", [], (err, row) => {
+                    if (err) return res.status(500).json({ error: err.message });
+                    stats.dueNextWeek = row.count;
+
+                    db.get("SELECT COUNT(*) as count FROM tasks WHERE due_date BETWEEN date('now') AND date('now', '+15 days')", [], (err, row) => {
+                        if (err) return res.status(500).json({ error: err.message });
+                        stats.next15Days = row.count;
+
+                        db.get("SELECT COUNT(*) as count FROM tasks WHERE due_date < date('now') AND status != 'Close'", [], (err, row) => {
+                            if (err) return res.status(500).json({ error: err.message });
+                            stats.overdue = row.count;
+                            res.json(stats); // Send response in the final callback
+                        });
                     });
                 });
             });
